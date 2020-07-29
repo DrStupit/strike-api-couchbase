@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CouchAdapter.Models;
 using CouchAdapter.Repositorys;
-using Couchbase.Core;
+using Couchbase;
 using Couchbase.Extensions.DependencyInjection;
-using Couchbase.N1QL;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace strike_api_couchbase.Controllers
@@ -16,23 +12,17 @@ namespace strike_api_couchbase.Controllers
     [ApiController]
     public class ClientController : ControllerBase
     {
-        private readonly IBucket _bucket;
-
-        public ClientController(IBucketProvider bucketProvider)
+        public ClientController()
         {
-            _bucket = bucketProvider.GetBucket("balance");
         }
 
         [HttpGet]
         [Route("getBalance")]
         public List<Balance> GetBalance(long punterId)
         {
-            var n1ql = "SELECT * FROM `balance` WHERE punterID = $punterID;";
-            var query = QueryRequest.Create(n1ql);
-            query.AddNamedParameter("$punterID", punterId);
-            var result = _bucket.Query<Balance>(query);
+            var repo = new BalanceRepository();
 
-            return result.Rows;
+            return repo.GetBalanceAsync(punterId);
         }
     }
 }
