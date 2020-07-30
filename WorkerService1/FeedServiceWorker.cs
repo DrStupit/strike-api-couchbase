@@ -9,7 +9,9 @@ using Couchbase.Configuration.Client;
 using Couchbase.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Strike.Common.Models.Feeds;
+using Strike.Common.RestSharp;
 
 namespace FeedServiceWorker
 {
@@ -27,23 +29,23 @@ namespace FeedServiceWorker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var rnd = new Random();
-                
-                var testFeed = new TestFeed();
-                testFeed.ID = Guid.NewGuid().ToString();
-                testFeed.SiteName = "Mob HollywoodBets";
-                testFeed.Teams = "Swindle Fc vs Trumps Wall United";
-                testFeed.Odds = rnd.NextDouble() * 100;
-                
-                var document = new Document<TestFeed>
-                {
-                    Id = testFeed.ID,
-                    Content = testFeed
-                };
-                var result = _bucket.Upsert<TestFeed>(document);
+                var getSportHelper = new Helper();
 
-                _logger.LogInformation($"Added Event: {result}");
-                await Task.Delay(2000, stoppingToken);
+                var sportData = getSportHelper.GetSports();
+                var sportList = sportData.Data;
+
+                foreach (var sport in sportList)
+                {
+                    var document = new Document<Sport>
+                    {
+                        Id = sport.Key,
+                        Content = sport
+                    };
+                    _logger.LogInformation($"Sport Inserted to couch: {sport}");
+                    var result = _bucket.Upsert<Sport>(document);
+                }
+
+                await Task.Delay(3600000, stoppingToken);
             }
         }
 
