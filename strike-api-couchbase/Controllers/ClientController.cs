@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 using Couchbase;
 using Couchbase.Core;
 using Couchbase.Extensions.DependencyInjection;
+using Couchbase.N1QL;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using strike_api_couchbase.Models.Balance;
 
 namespace strike_api_couchbase.Controllers
@@ -18,17 +20,38 @@ namespace strike_api_couchbase.Controllers
         {
             _bucket = bucketProvider.GetBucket("balance");
         }
-        [HttpGet]
+        [HttpGet] 
         [Route("getBalance")]
-        public Task<List<Balance>> GetBalance(long punterId)
+        public List<Balance> GetBalance(long punterId)
         {
-            var result = new List<Balance>();
-            var queryResult = _bucket.QueryAsync<dynamic>($"SELECT * FROM `balance` WHERE punterID = {punterId}").Result;
-            foreach (var row in queryResult.Rows)
+            var records = new List<Balance>();
+            var n1ql = "SELECT d.* FROM balance d WHERE punterID = $punterID";
+            var qr = QueryRequest.Create(n1ql);
+            qr.AddNamedParameter("$punterID", punterId);
+            var queryResult = _bucket.Query<Balance>(qr);
+            foreach(var row in queryResult.Rows)
             {
-                result = row;
+                
+                records.Add(row);
             }
-            return null;
+            return records;
+        }
+
+        [HttpPost]
+        [Route("updateBalance")]
+        public string UpdateBalance(Balance balance)
+        {
+            balance.ID = Guid.NewGuid().ToString();
+            var result = _bucket.Upsert<Balance>(balance.ID, balance);
+
+            if(result.Success)
+            {
+                return balance.ID;
+            }
+            else
+            {
+                return "Failed to update/insert Punter Balance";
+            }
         }
     }
 }
