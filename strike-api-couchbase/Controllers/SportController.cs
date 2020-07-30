@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Couchbase;
 using Couchbase.Core;
 using Couchbase.Extensions.DependencyInjection;
 using Couchbase.N1QL;
@@ -9,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Strike.Common.Models.Feeds;
+using Strike.Common.Models.Odds;
+using Strike.Common.RestSharp;
 using strike_api_couchbase.Models.Balance;
 
 namespace strike_api_couchbase.Controllers
@@ -46,6 +49,26 @@ namespace strike_api_couchbase.Controllers
                 }
             }
             return records;
+        }
+
+        [HttpGet]
+        [Route("getSportsByName")]
+        public List<ListingOptions> GetSportsByName(string sportKey, string region, string mkt) 
+        {
+            var restHelper = new Helper();
+            var oddsData = restHelper.GetOddsBySportName(sportKey, region, mkt);
+            var gameList = oddsData.Data;
+
+            foreach (var game in gameList)
+            {
+                var document = new Document<ListingOptions>
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Content = game
+                };
+                var result = _bucket.UpsertAsync<ListingOptions>(document);
+            }
+            return gameList;
         }
         #endregion
     }

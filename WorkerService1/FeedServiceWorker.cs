@@ -7,6 +7,7 @@ using Couchbase;
 using Couchbase.Authentication;
 using Couchbase.Configuration.Client;
 using Couchbase.Core;
+using FeedService;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -21,7 +22,8 @@ namespace FeedServiceWorker
         private readonly IBucket _bucket;
         public FeedServiceWorker(ILogger<FeedServiceWorker> logger)
         {
-            var cluster = InitializeCouchDatabase("http://127.0.0.1:8091/", "Administrator", "Sugenthran@09");
+            var couch = new CouchConnector();
+            var cluster = couch.InitializeCouchDatabase("http://127.0.0.1:8091/", "Administrator", "Sugenthran@09");
             _bucket = cluster.OpenBucket("feeds");
             _logger = logger;
         }
@@ -48,19 +50,5 @@ namespace FeedServiceWorker
                 await Task.Delay(3600000, stoppingToken);
             }
         }
-
-        public Cluster InitializeCouchDatabase(string server, string username, string password)
-        {
-            var cluster = new Cluster(new ClientConfiguration
-            {
-                Servers = new List<Uri> { new Uri(server) }
-            });
-
-            var authenticator = new PasswordAuthenticator(username, password);
-            cluster.Authenticate(authenticator);
-
-            return cluster;
-        }
-
     }
 }
