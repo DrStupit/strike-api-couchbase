@@ -23,7 +23,7 @@ namespace strike_api_couchbase.Controllers
             _bucket = bucketProvider.GetBucket("balance");
             _logger = logger;
         }
-
+        #region Balance
         [HttpGet] 
         [Route("getBalance")]
         public List<Balance> GetBalance(long punterId)
@@ -67,5 +67,7 @@ namespace strike_api_couchbase.Controllers
                 return "Failed to update/insert Punter Balance";
             }
         }
+
+        #endregion
     }
 }
