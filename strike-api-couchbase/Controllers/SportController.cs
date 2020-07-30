@@ -63,7 +63,7 @@ namespace strike_api_couchbase.Controllers
             {
                 var document = new Document<ListingOptions>
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = game.Sport_Key + "" + game.Home_Team + "" + game.Commence_Time,
                     Content = game
                 };
                 var result = _bucket.UpsertAsync<ListingOptions>(document);

@@ -34,5 +34,12 @@ namespace Strike.Common.Models.Odds
     public class Odds
     {
         public List<double> H2H { get; set; }
+        public Spread spreads { get; set; }
+    }
+
+    public class Spread
+    {
+        public List<double> Odds { get; set; }
+        public List<string> Points { get; set; }
     }
 }
