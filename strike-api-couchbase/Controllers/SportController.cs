@@ -59,15 +59,16 @@ namespace strike_api_couchbase.Controllers
             var oddsData = restHelper.GetOddsBySportName(sportKey, region, mkt);
             var gameList = oddsData.Data;
 
-            //foreach (var game in gameList)
-            //{
-            //    var document = new Document<ListingOptions>
-            //    {
-            //        Id = game.Sport_Key + "" + game.Home_Team + "" + game.Commence_Time,
-            //        Content = game
-            //    };
-            //    var result = _bucket.UpsertAsync<ListingOptions>(document);
-            //}
+
+            foreach (var game in gameList)
+            {
+                if (game.Sport_Key != null)
+                {
+                    var key = game.Sport_Key + "" + game.Home_Team + "" + game.Commence_Time;
+                    RedisConnection connection = new RedisConnection();
+                    connection.SaveKeyValueToDB(key, game.ToString(), 0, 30);
+                }
+            }
             return gameList;
         }
         #endregion
